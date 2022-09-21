@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Test Site</title>
+</head>
+
+<body>
+	<h1>See browser console for info</h1>
+
+<script type="module">
+	import * as mve from './pkg/mve.js';
+
+	async function run() {
+		let module = await mve.default();
+
+		let s = new mve.SomeStruct();
+
+		console.log("Initial value (should be 0):", s.field());
+
+		await s.with_callback(function(s_instance, second_arg, third_arg) {
+			// s_instance is of type SomeStruct, and is a COPY of s
+
+			console.log("callback was called with parameter", s_instance, second_arg, third_arg);
+
+			console.log("Current field value (should be 0):", s_instance.field());
+
+			console.log("Setting field to 42");
+
+			// This only modifies the copy
+			s_instance.modify_field(42);
+
+			console.log("Field value after setting (should be 42):", s_instance.field());
+
+			console.log("end callback");
+
+			// TODO: Directly calling methods on s also does not work either
+			// Error: recursive use of an object detected which would lead to unsafe aliasing in rust
+			//
+			// s.modify_field(43);
+		})
+
+		console.log("This should be after \"end callback\"");
+
+		// TODO: the original s is unchanged, so
+		// this does not work, as the callback operated on the cloned s
+		// TODO: How to make this work?
+		console.log("Field value after callback (should be 42):", s.field());
+	}
+
+	run();
+	</script>
+</body>
+
+</html>
